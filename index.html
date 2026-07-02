@@ -314,5 +314,97 @@
                 { q: "戴在手腕上，有长针和短针，天天滴答滴答帮你看时间的是什么？", s: ["手表", "时钟", "玩具", "礼物"], a: "手表" },
                 { q: "饭菜没吃完就偷偷倒掉，本子没写几个字就扔掉，这种不爱惜的行为叫什么？", s: ["浪费", "简单", "奇怪", "半途而废"], a: "浪费" },
                 { q: "放假了，爸爸妈妈带你坐飞机去北京或者去海边玩，这叫什么？", s: ["旅行", "跳舞", "愿望", "特别"], a: "旅行" }
-            ],
+            ], idiom: [
+{ q: "一会想吃苹果，一会想吃西瓜，心思变来变去，可以用哪两个数字形容？", s: ["三心两意", "手忙脚乱", "狼吞虎咽", "半途而废"], a: "三心两意" },
+{ q: "写作业写到一半就跑去玩了，没有坚持写完。", s: ["半途而废", "三心两意", "满头大汗", "手忙脚乱"], a: "半途而废" },
+{ q: "肚子太饿了，吃起饭来像狼和老虎一样快。", s: ["狼吞虎咽", "手忙脚乱", "满头大汗", "愁眉苦脸"], a: "狼吞虎咽" },
+{ q: "遇到难过、发愁的事，眉头锁在一起，脸拉得长长的。", s: ["愁眉苦脸", "满头大汗", "手忙脚乱", "奇怪"], a: "愁眉苦脸" },
+{ q: "天气太热或者刚跑完800米，整个头上都是汗水。", s: ["满头大汗", "手忙脚乱", "愁眉苦脸", "跳舞"], a: "满头大汗" },
+{ q: "事情太多太着急，手和脚都不知道该先动哪一个，乱成一团。", s: ["手忙脚乱", "满头大汗", "狼吞虎咽", "简单"], a: "手忙脚乱" },
+{ q: "这个东西长得和普通的东西不一样，让人觉得很不平常、看不懂。", s: ["奇怪", "特别", "简单", "浪费"], a: "奇怪" },
+{ q: "这道题一点都不难，一加一等于二非常（ ）。", s: ["简单", "特别", "奇怪", "愿望"], a: "简单" },
+{ q: "听着欢快的音乐，身体跟着节奏快乐地跳跃、摆动。", s: ["跳舞", "旅行", "玩具", "特别"], a: "跳舞" },
+{ q: "情人节或者母亲节时，爸爸送给妈妈一整把漂亮的红玫瑰。", s: ["一束鲜花", "礼物", "环保袋", "棉花"], a: "一束鲜花" }
+]
+};
+let currentCategory = 'riddle';
+let answeredCount = 0;
+function renderQuiz(category) {
+currentCategory = category;
+answeredCount = 0;
+updateProgressBar();
+const container = document.getElementById('quiz-box');
+container.innerHTML = '';
+database[category].forEach((item, index) => {
+const card = document.createElement('div');
+card.className = 'card';
+const header = document.createElement('div');
+header.className = 'card-header';
+header.innerHTML = <span class="badge">TASK ${index + 1}</span> ${item.q};
+card.appendChild(header);
+const grid = document.createElement('div');
+grid.className = 'options-grid';
+item.s.forEach(option => {
+const btn = document.createElement('button');
+btn.className = 'option-btn';
+btn.innerText = option;
+btn.onclick = function() { checkAnswer(this, option, item.a, grid); };
+grid.appendChild(btn);
+});
+card.appendChild(grid);
+const result = document.createElement('div');
+result.className = 'result-text';
+card.appendChild(result);
+container.appendChild(card);
+});
+}
+function checkAnswer(selectedBtn, chosen, correct, gridElement) {
+const buttons = gridElement.querySelectorAll('.option-btn');
+const resultText = gridElement.nextElementSibling;
+buttons.forEach(btn => btn.disabled = true);
+if (chosen === correct) {
+selectedBtn.classList.add('correct');
+resultText.innerHTML = "🟢 系统校验：能量匹配成功！答案正确。";
+resultText.className = "result-text text-success";
+} else {
+selectedBtn.classList.add('wrong');
+resultText.innerHTML = 🔴 系统报错：正确修复码应该是【${correct}】;
+resultText.className = "result-text text-danger";
+buttons.forEach(btn => {
+if (btn.innerText === correct) btn.classList.add('correct');
+});
+}
+answeredCount++;
+updateProgressBar();
+if (answeredCount === 10) {
+setTimeout(showReward, 600);
+}
+}
+function updateProgressBar() {
+const percentage = (answeredCount / 10) * 100;
+document.getElementById('progress').style.width = percentage + '%';
+}
+function showReward() {
+const messages = {
+riddle: "太厉害了！10道能量字谜全部破解完毕！
+你成功为基地注入了满格能源 ⚡️",
+brain: "思维反应太快了！10道舱外急转弯全部通关！
+你的智慧已经超越了火星重力 🚀",
+idiom: "成语知识库完美同步！10道基地成语全部答完！
+你现在是超级火星指挥官了 🛸"
+};
+document.getElementById('reward-text').innerHTML = messages[currentCategory];
+document.getElementById('reward-overlay').classList.add('show');
+}
+function closeReward() {
+document.getElementById('reward-overlay').classList.remove('show');
+}
+function switchCategory(category) {
+document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+document.getElementById(tab-${category}).classList.add('active');
+renderQuiz(category);
+}
+window.onload = function() {
+renderQuiz('riddle');
+};
 
