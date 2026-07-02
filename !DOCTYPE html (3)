@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>火星基地 · 趣味思维挑战场</title>
+    <style>
+        :root {
+            --mars-red: #ff4500;
+            --mars-orange: #ff7f50;
+            --space-black: #0b090a;
+            --neon-glow: #00ffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Microsoft YaHei, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--space-black) 30%, #2b0f0d 100%);
+            color: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* 星空背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px);
+            background-size: 200px 200px;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px dashed var(--mars-red);
+            padding-bottom: 15px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        h1 {
+            color: var(--mars-orange);
+            font-size: 2rem;
+            text-shadow: 0 0 10px rgba(255, 69, 0, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        /* 分类导航 */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 69, 0, 0.1);
+            border: 1px solid var(--mars-red);
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--mars-red);
+            box-shadow: 0 0 15px var(--mars-red);
+        }
+
+        /* 进度条 */
+        .progress-container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255,255,255,0.1);
+            height: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 69, 0, 0.3);
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--mars-orange), var(--neon-glow));
+            transition: width 0.3s ease;
+        }
+
+        /* 答题卡片容器 */
+        .quiz-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .card {
+            background: rgba(20, 15, 15, 0.8);
+            border: 1px solid rgba(255, 127, 80, 0.3);
+            border-left: 5px solid var(--mars-orange);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .card-header {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge {
+            background: #444;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--neon-glow);
+        }
+
+        /* 选项布局 */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #ddd;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: var(--neon-glow);
+        }
+
+        /* 反馈控制 */
+        .option-btn.correct {
+            background: #2e7d32 !important;
+            border-color: #4caf50 !important;
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background: #c62828 !important;
+            border-color: #f44336 !important;
+            color: white;
+        }
+
+        .result-text {
+            font-weight: bold;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+
+        .text-success { color: #4caf50; }
+        .text-danger { color: #f44336; }
+
+        /* 奖励弹窗遮罩 */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 奖励弹窗卡片 */
+        .reward-modal {
+            background: #1c1a1a;
+            border: 2px solid var(--neon-glow);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            transform: scale(0.7);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .overlay.show .reward-modal {
+            transform: scale(1);
+        }
+
+        .reward-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .reward-title {
+            color: var(--neon-glow);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .reward-body {
+            color: #ddd;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .close-reward-btn {
+            background: linear-gradient(90deg, var(--mars-red), var(--mars-orange));
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .close-reward-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>火星探索者 · 思维空间站</h1>
+        <p class="subtitle">适合中年级宇航员的脑力测试基地</p>
+    </header>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" id="tab-riddle" onclick="switchCategory('riddle')">☄️ 能量字谜</button>
+        <button class="tab-btn" id="tab-brain" onclick="switchCategory('brain')">🚀 舱外急转弯</button>
+        <button class="tab-btn" id="tab-idiom" onclick="switchCategory('idiom')">🛸 基地成语</button>
+    </div>
+
+    <!-- 任务进度条 -->
+    <div class="progress-container">
+        <div id="progress" class="progress-bar"></div>
+    </div>
+
+    <div id="quiz-box" class="quiz-container">
+        <!-- 题目将由 JavaScript 动态生成 -->
+    </div>
+
+    <!-- 弹出式奖励面板 -->
+    <div id="reward-overlay" class="overlay">
+        <div class="reward-modal">
+            <div class="reward-icon">🏆</div>
+            <div class="reward-title">你太棒了！</div>
+            <div class="reward-body" id="reward-text">
+                成功解锁当前火星能源点！<br>
+                获得【高级火星学者】徽章 🏅
+            </div>
+            <button class="close-reward-btn" onclick="closeReward()">接收能量并继续</button>
+        </div>
+    </div>
+
+    <script>
+        // 核心题库数据
+        const database = {
+            riddle: [
+                { q: "心里有一个大大的愿望，去掉底下的心，换成言字旁（讠）。", s: ["原谅", "愿望", "特别", "简单"], a: "原谅" },
+                { q: "“原”字下面加一个“心”字。", s: ["愿望", "原谅", "时钟", "礼物"], a: "愿望" },
+                { q: "反犬旁（犭）右边写一个“苗”字。", s: ["猫咪", "玩具", "蝌蚪", "胡子"], a: "猫咪" },
+                { q: "“元”字加一横，后面放一个“具”字。", s: ["玩具", "环保袋", "棉花", "吸管"], a: "玩具" },
+                { q: "左边是三点水（氵），右边是一个“巾”字。", s: ["毛巾", "瀑布", "手表", "牙刷"], a: "毛巾" },
+                { q: "左边是“时”字，右边是“钟”字。", s: ["时钟", "手表", "彩虹", "礼物"], a: "时钟" },
+                { q: "小蝌蚪，细尾巴，左边是三点水（氵），右边写个“科”。", s: ["蝌蚪", "猫咪", "瀑布", "简单"], a: "蝌蚪" },
+                { q: "长在嘴巴周围、下巴上的毛。", s: ["胡子", "棉花", "毛巾", "特别"], a: "胡子" },
+                { q: "植物长出的白白软软的壳，可以用来做棉被。", s: ["棉花", "玩具", "环保袋", "一束鲜花"], a: "棉花" },
+                { q: "牛字旁（牜）加一个“寺”字。", s: ["特别", "奇怪", "简单", "愿望"], a: "特别" }
+            ],
+            brain: [
+                { q: "去超市买东西不用塑料袋，用什么袋子最保护地球？", s: ["环保袋", "玩具", "毛巾", "吸管"], a: "环保袋" },
+                { q: "每天早晚都要全身挤上白膏，在嘴巴里刷刷刷的是什么？", s: ["牙刷", "毛巾", "吸管", "时钟"], a: "牙刷" },
+                { q: "下雨后天空中出现一条彩色的、像桥一样的东西，是什么？", s: ["彩虹", "瀑布", "灰色", "特别"], a: "彩虹" },
+                { q: "水往低处流，从很高很高的大山上直直冲下来的大水叫什么？", s: ["瀑布", "彩虹", "吸管", "简单"], a: "瀑布" },
+                { q: "过生日或者过圣诞节时，拆开包装纸才能看到的惊喜是什么？", s: ["礼物", "玩具", "一束鲜花", "愿望"], a: "礼物" },
+                { q: "黑色的墨水和白色的牛奶混在一起，会变成什么颜色？", s: ["灰色", "奇怪", "特别", "棉花"], a: "灰色" },
+                { q: "插在饮料杯里，用嘴轻轻一吸就能喝到奶茶的管子叫什么？", s: ["吸管", "牙刷", "毛巾", "玩具"], a: "吸管" },
